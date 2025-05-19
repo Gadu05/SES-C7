@@ -4,19 +4,29 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/fontawesome.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/brands.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/solid.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/svg-with-js.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/v4-shims.min.css">
-    <link rel="stylesheet" href="../public/css/style.css">
+
+    <!-- <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&display=swap" rel="stylesheet"> -->
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@1,400&display=swap" rel="stylesheet">
+
+
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/login.css">
 </head>
 <body>
-  <form method="POST" action="/login">
-    <input name="username" type="text" placeholder="Usuário" required>
-    <input name="password" type="password" placeholder="Senha" required>
-    <button type="submit">Login</button>
-  </form>
+  <div class="container">
+
+    <div class="container-fm-login">
+      <div class="div-fm-login">
+        <form class="fm-login" method="POST" action="/login">
+          <h1 class="fm-h1-login">login</h1>
+          <input class="txt" name="username" type="email" placeholder="E-mail" required>
+          <input class="txt" name="password" type="password" placeholder="Senha" required>
+          <button class="btn" type="submit">LOGIN</button>
+        </form>
+      </div>
+    </div>
+
+
+  </div>
 </body>
 </html>
