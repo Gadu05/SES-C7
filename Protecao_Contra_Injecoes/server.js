@@ -15,11 +15,11 @@ app.use(express.static('public'));
 const USERS = { user: 'senha' };
 
 app.get('/', (_, res) => {
-  res.sendFile(path.join(__dirname, 'view/login.html'));
+  res.sendFile(path.join(__dirname, 'views/login.html'));
 });
 
 app.get('/login', (_, res) => {
-  res.sendFile(path.join(__dirname, 'view/login.html'));
+  res.sendFile(path.join(__dirname, 'views/login.html'));
 });
 
 app.post('/login', (req, res) => {
