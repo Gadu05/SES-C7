@@ -20,12 +20,20 @@ router.post('/login', async (req, res) => {
 
 });
 
-router.get('/dashboard', (req, res) => {
+router.get('/login', (req, res) => {
+  if (req.session.user) {
+    res.redirect('/dashboard');
+  } else {
+    res.render('login');
+  }
+});
+
+/*router.get('/dashboard', (req, res) => {
   if (req.session.user) {
     res.render('dashboard', { user: req.session.user });
   } else {
     res.redirect('/');
   }
-});
+});*/
 
 module.exports = router;
