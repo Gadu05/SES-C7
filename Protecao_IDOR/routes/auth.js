@@ -1,39 +1,39 @@
 const express = require('express');
 const router = express.Router();
 const db = require('../database/connection');
+const verifyReferer = require('../middlewares/verifyReferer');
 
+// GET login
+router.get('/login', verifyReferer(), (req, res) => {
+  if (req.session.user) {
+    return res.redirect('/dashboard');
+  }
+  res.render('login', { error: null, csrfToken: req.csrfToken() });
+});
+
+// POST login
 router.post('/login', async (req, res) => {
   const { username, password } = req.body;
-  
-  // *** CÓDIGO VUNERÁVEL ***
-  //const [rows] = await db.execute(`SELECT * FROM usuarios WHERE email = '${username}' AND senha = '${password}'`);
-  
-  // *** PREPARED STATEMENTS ***
-  const [rows] = await db.execute('SELECT * FROM usuarios WHERE email = ? AND senha = ?', [username, password]);
-  
+
+  const [rows] = await db.execute(
+    'SELECT * FROM usuarios WHERE email = ? AND senha = ?',
+    [username, password]
+  );
+
   if (rows.length > 0) {
     req.session.user = rows[0].id;
     res.redirect('/dashboard');
   } else {
-    res.send('Login inválido');
-  }
-
-});
-
-router.get('/login', (req, res) => {
-  if (req.session.user) {
-    res.redirect('/dashboard');
-  } else {
-    res.render('login');
+    res.render('login', { error: 'Login inválido', csrfToken: req.csrfToken() });
   }
 });
 
-/*router.get('/dashboard', (req, res) => {
-  if (req.session.user) {
-    res.render('dashboard', { user: req.session.user });
-  } else {
-    res.redirect('/');
-  }
-});*/
+// Logout
+router.get('/logout', (req, res) => {
+  req.session.destroy(() => {
+    res.clearCookie('connect.sid');
+    res.redirect('/login');
+  });
+});
 
 module.exports = router;

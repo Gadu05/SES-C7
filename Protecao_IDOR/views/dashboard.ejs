@@ -1,12 +1,54 @@
 <!DOCTYPE html>
-<html lang="pt">
+<html>
 <head>
-  <meta charset="UTF-8">
-  <title>Dashboard</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
+
+    <!-- <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&display=swap" rel="stylesheet"> -->
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@1,400&display=swap" rel="stylesheet">
+
+
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/dashboard.css">
+
 </head>
 <body>
-  <h1>Bem-vindo, <%= user.nome %></h1>
-  <p>ID: <%= user.id %></p>
-  <p>Email: <%= user.email %></p>
+    <h1>Bem-vindo ao Dashboard</h1>
+
+    <div class="background">
+
+        <div class="container">
+            <div>
+                <label for="txtId">ID</label>
+            </div>
+            <div>
+                <input class="txt" name="txtId" id="txtId" type="text" value="<%= user.id %>" disabled>
+            </div>
+            <div>
+                <label for="txtNome">NOME</label>
+            </div>
+            <div>
+                <input class="txt" name="txtNome" id="txtNome" type="text" value="<%= user.nome %>" disabled>
+            </div>
+            <div>
+                <label for="txtEmail">EMAIL</label>
+            </div>
+            <div>
+                <input class="txt" name="txtEmail" id="txtEmail" type="text" value="<%= user.email %>" disabled>
+            </div>
+        </div>
+
+    </div>
+
+    <br>
+    <br>
+    <a href="/change-password">MUDAR SENHA</a>
+
+    <br>
+    <br>
+    <a href="/logout">SAIR</a>
+    
+
 </body>
 </html>

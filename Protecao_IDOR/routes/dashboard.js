@@ -1,45 +1,44 @@
 const express = require('express');
 const router = express.Router();
-const db = require('../../Protecao_Contra_SQL_Injection/database/connection');
-const verificaAutenticacao = require('../middlewares/isAuth');
+const db = require('../database/connection');
+const authRequired = require('../middlewares/authRequired');
 
-/*router.post('/dashboard', verificaAutenticacao, async (req, res) => {
-  //const { username, password } = req.body;
-  
-  const [rows] = await db.execute('SELECT * FROM usuarios WHERE id = ?', [req.session.user]);
-  
-  if (rows.length > 0) {
-    res.redirect('/dashboard');
-  } else {
-    res.send('Login inválido');
-  }
+router.get('/dashboard', authRequired, async (req, res) => {
+  if (req.session.user) {
 
-});*/
+    //const userId = req.session.user;
+    //const userId = req.query.id;
 
-router.get('/dashboard', verificaAutenticacao, async (req, res) => {
-  const userId = req.user;
+    const userId = req.query.id || req.session.user;
 
-  if (!userId) {
-    res.render('/dashboard', { user: req.session.user });
-    return;
-  }
+    if (!userId) {
+      return res.status(400).send('ID do usuário não fornecido');
+    }
 
-  try {
     const [rows] = await db.execute(
       'SELECT * FROM usuarios WHERE id = ?',
       [userId]
     );
 
-    if (rows.length > 0) {
-      res.render('dashboard', { user: rows[0] });
-    } else {
-      res.send('Usuário não encontrado');
+    if (rows.length === 0) {
+      return res.status(404).send('Usuário não encontrado');
     }
-  } catch (error) {
-    console.error('Erro ao buscar usuário:', error);
-    res.status(500).send('Erro interno no servidor');
+
+    res.render('dashboard', { user: rows[0] });
+
+  } else {
+    res.redirect('/');
   }
+
 });
 
+router.get('/session-test', (req, res) => {
+    if (!req.session.visits) {
+        req.session.visits = 1;
+    } else {
+        req.session.visits++;
+    }
+    res.send(`Sessão ativa. Visitas: ${req.session.visits}`);
+});
 
 module.exports = router;

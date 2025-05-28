@@ -1,57 +1,94 @@
 const express = require('express');
 const session = require('express-session');
+const cookieParser = require('cookie-parser');
+const csrf = require('csurf');
 const path = require('path');
-require('dotenv').config();
 const fs = require('fs');
+require('dotenv').config();
 
 const app = express();
 
+// Configurações
+app.use(cookieParser());
 app.use(express.urlencoded({ extended: true }));
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.json());
+
+// Sessão
 app.use(session({
-  secret: process.env.SESSION_SECRET,
+  secret: 'chave-secreta',
   resave: false,
-  saveUninitialized: false
+  saveUninitialized: false,
+  cookie: {
+    httpOnly: true,
+    sameSite: 'Strict'
+  }
 }));
 
+// CSRF
+const csrfProtection = csrf({ cookie: false });
+app.use(csrfProtection);
 
-app.use(express.json());
-// Middleware para dados de formulário (caso use Content-Type: application/x-www-form-urlencoded)
-app.use(express.urlencoded({ extended: true }));
+// View Engine
+app.set('view engine', 'ejs');
+app.set('views', path.join(__dirname, 'views'));
 
+// Middleware global para enviar o token para as views
+app.use((req, res, next) => {
+  res.locals.csrfToken = req.csrfToken();
+  next();
+});
 
-/*const routesPath = path.join(__dirname, 'routes');
+// Views e arquivos estáticos
+app.set('view engine', 'ejs');
+app.set('views', path.join(__dirname, 'views'));
+app.use(express.static('public'));
 
-fs.readdirSync(routesPath).forEach((file) => {
-  if (file.endsWith('.js')) {
-    const route = require(path.join(routesPath, file));
-    console.log(`Carregando rota: ${path.join(routesPath, file)}`);
-    console.log(`Carregando rota: ${file}`);
-    console.log(`Rota: /${file.split('.')[0]}`);
-    console.log(`Carregando rota: ${route}`);
-    app.use(`/${file.split('.')[0]}`, route);
-  }
+// CSRF aplicado globalmente (exceto na rota de API)
+app.use((req, res, next) => {
+  if (req.path.startsWith('/api/')) return next();
+  csrfProtection(req, res, next);
+});
+
+// Middleware para passar token CSRF automático nas views
+app.use((req, res, next) => {
+  res.locals.csrfToken = req.csrfToken();
+  next();
+});
+
+// Importação dinâmica das rotas
+fs.readdirSync(path.join(__dirname, 'routes'))
+  .filter(file => file.endsWith('.js'))
+  .forEach(file => {
+    const route = require(path.join(__dirname, 'routes', file));
+    app.use(route);
+  });
+
+// Rotas principais
+app.get('/', (req, res) => {
+  res.render('login', { error: null });
+});
+
+app.get('/api/csrf-token', (req, res) => {
+  res.json({ csrfToken: req.csrfToken() });
+});
+
+/*
+app.get('/session-test', (req, res) => {
+  if (!req.session.visits) req.session.visits = 1;
+  else req.session.visits++;
+
+  res.send(`Número de visitas nesta sessão: ${req.session.visits}`);
 });*/
 
-
-const authRoutes = require('./routes/auth');
-app.use('/', authRoutes);
-const dashboardRoutes = require('./routes/dashboard');
-app.use('/dashboard', dashboardRoutes);
-
-app.set('view engine', 'ejs');
-app.get('/', (req, res) => {
-  res.sendFile('login.html', { root: 'views' });
-});
-
-app.get('/login', (req, res) => {
-  if (req.session.user) {
-    res.redirect('/dashboard');
+// Erro CSRF específico
+app.use((err, req, res, next) => {
+  if (err.code === 'EBADCSRFTOKEN') {
+    res.status(403).send('Formulário adulterado!');
   } else {
-    res.sendFile('login.html', { root: 'views' });
+    console.error(err.stack);
+    res.status(500).send('Algo deu errado! ' + err.message);
   }
 });
 
-app.listen(3000, () => {
-  console.log('Servidor rodando em http://localhost:3000');
-});
+// Inicia o servidor
+app.listen(3000, () => console.log('Servidor em http://localhost:3000'));
