@@ -18,8 +18,14 @@
     <div class="container-fm-login">
       <div class="div-fm-login">
         <form class="fm-login" method="POST" action="/login">
-          <input type="hidden" name="_csrf" id="csrf">
-          <h1 class="fm-h1-login">login - HTML</h1>
+          
+          <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+
+          <% if (error) { %>
+            <p style="color:red;"><%= error %></p>
+          <% } %>
+
+          <h1 class="fm-h1-login">login</h1>
           <input class="txt" name="username" type="email" placeholder="E-mail" required>
           <input class="txt" name="password" type="password" placeholder="Senha" required>
           <button class="btn" type="submit">LOGIN</button>
@@ -27,9 +33,6 @@
       </div>
     </div>
   </div>
-
-
-  <script src="/js/csrf-token.js"></script>
 
 
 </body>

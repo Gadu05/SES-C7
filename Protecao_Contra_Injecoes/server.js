@@ -1,102 +1,94 @@
 const express = require('express');
 const session = require('express-session');
-const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
+const csrf = require('csurf');
 const path = require('path');
 const fs = require('fs');
-const csrf = require('csurf');
-
+require('dotenv').config();
 
 const app = express();
 
+// Configurações
 app.use(cookieParser());
-//app.use(bodyParser.urlencoded({ extended: false }));
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
 
+// Sessão
 app.use(session({
   secret: 'chave-secreta',
   resave: false,
   saveUninitialized: false,
   cookie: {
     httpOnly: true,
-    sameSite: 'Strict', // Proteção SameSite
+    sameSite: 'Strict'
   }
 }));
 
-app.use(express.urlencoded({ extended: true }));
-app.use(express.json());
-app.use(csrf({ cookie: true }));
+// CSRF
+const csrfProtection = csrf({ cookie: false });
+app.use(csrfProtection);
 
-// Middleware de CSRF
-/*
-const csrfProtection = csrf();
-app.use(csrfProtection);*/
+// View Engine
+app.set('view engine', 'ejs');
+app.set('views', path.join(__dirname, 'views'));
 
-/*
-function conditionalCsrf(req, res, next) {
-  const safeMethods = ['GET', 'HEAD', 'OPTIONS'];
-  if (safeMethods.includes(req.method) || req.path === '/api/csrf-token') {
-    return next();
-  }
-  return csrfProtection(req, res, next);
-}*/
-/*
+// Middleware global para enviar o token para as views
 app.use((req, res, next) => {
-  // Permite token para rota de obtenção do token sem erro
-  if (req.path === '/api/csrf-token') {
-    return csrfProtection(req, res, next);
-  }
+  res.locals.csrfToken = req.csrfToken();
+  next();
+});
 
-  // Métodos seguros passam direto (sem validar token)
-  if (['GET', 'HEAD', 'OPTIONS'].includes(req.method)) {
-    return next();
-  }
-
-  // Para os demais métodos, valida token
-  return csrfProtection(req, res, next);
-});*/
-
-//app.use(conditionalCsrf);
-
-
+// Views e arquivos estáticos
+app.set('view engine', 'ejs');
+app.set('views', path.join(__dirname, 'views'));
 app.use(express.static('public'));
 
-
-const USERS = { user: 'senha' };
-
-
-fs.readdirSync(path.join(__dirname, 'routes')).forEach((file) => {
-    if (file.endsWith('.js')) {
-        const routes = require(path.join(__dirname, 'routes', file));
-        app.use('/', routes);
-    }
+// CSRF aplicado globalmente (exceto na rota de API)
+app.use((req, res, next) => {
+  if (req.path.startsWith('/api/')) return next();
+  csrfProtection(req, res, next);
 });
 
-app.get('/', (_, res) => {
-  res.sendFile(path.join(__dirname, 'views/login.html'));
+// Middleware para passar token CSRF automático nas views
+app.use((req, res, next) => {
+  res.locals.csrfToken = req.csrfToken();
+  next();
 });
 
-app.get('/login', (_, res) => {
-  res.sendFile(path.join(__dirname, 'views/login.html'));
-});
+// Importação dinâmica das rotas
+fs.readdirSync(path.join(__dirname, 'routes'))
+  .filter(file => file.endsWith('.js'))
+  .forEach(file => {
+    const route = require(path.join(__dirname, 'routes', file));
+    app.use(route);
+  });
 
-app.get('/dashboard', (req, res) => {
-  if (!req.session.user) return res.status(403).send('Acesso negado');
-  res.sendFile(path.join(__dirname, 'views/dashboard.html'));
-});
-
-app.get('/change-password', (req, res) => {
-  if (!req.session.user) return res.status(403).send('Acesso negado');
-  res.sendFile(path.join(__dirname, 'views/change-password.html'));
+// Rotas principais
+app.get('/', (req, res) => {
+  res.render('login', { error: null });
 });
 
 app.get('/api/csrf-token', (req, res) => {
   res.json({ csrfToken: req.csrfToken() });
 });
 
+/*
+app.get('/session-test', (req, res) => {
+  if (!req.session.visits) req.session.visits = 1;
+  else req.session.visits++;
+
+  res.send(`Número de visitas nesta sessão: ${req.session.visits}`);
+});*/
+
+// Erro CSRF específico
 app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).send('Algo deu errado! ' + err.message);
+  if (err.code === 'EBADCSRFTOKEN') {
+    res.status(403).send('Formulário adulterado!');
+  } else {
+    console.error(err.stack);
+    res.status(500).send('Algo deu errado! ' + err.message);
+  }
 });
 
-
+// Inicia o servidor
 app.listen(3000, () => console.log('Servidor em http://localhost:3000'));
