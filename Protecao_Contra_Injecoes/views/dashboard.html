@@ -2,14 +2,14 @@
 <html>
 <head>
     <meta charset="UTF-8" />
-    <title>title</title>
+    <title>Dashboard</title>
 </head>
 <body>
-    <h2>Área do usuário</h2>
-    <label for="fmMudarSenha">MUDAR SENHA</label>
-    <form method="POST" action="/change-password" id="fmMudarSenha">
-        <input name="newPassword" placeholder="Nova senha" />
-        <button type="submit">Alterar Senha</button>
-    </form>
+    <h1>Bem-vindo ao Dashboard</h1>
+    <p>Você está logado como: {{ user.username }}</p>
+
+    <a href="/change-password">MUDAR SENHA</a>
+    
+
 </body>
 </html>
