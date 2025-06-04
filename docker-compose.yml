@@ -21,6 +21,17 @@ services:
       - db
     networks:
       - projetos-net
+  
+  protecao-idor:
+    build:
+      context: ./Protecao_IDOR
+      dockerfile: Dockerfile
+    ports:
+      - "3003:3000"
+    depends_on:
+      - db
+    networks:
+      - projetos-net
 
   db:
     image: mysql:8.0

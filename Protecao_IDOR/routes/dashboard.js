@@ -9,7 +9,15 @@ router.get('/dashboard', authRequired, async (req, res) => {
     //const userId = req.session.user;
     //const userId = req.query.id;
 
-    const userId = req.query.id || req.session.user;
+
+    if (req.query.id && req.query.id != req.session.user) {
+      return res.status(403).send('Acesso negado. Você não pode acessar o painel de outro usuário.' + 
+        "<br> <img class='img-login' src='https://http.cat/403' alt='Ataque CSRF'>" +
+        "<br><br> <a href='http://localhost:3000/dashboard'>VOLTAR</a>"
+      );
+    }
+    
+    const userId = req.session.user;
 
     if (!userId) {
       return res.status(400).send('ID do usuário não fornecido');
